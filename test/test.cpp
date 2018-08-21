@@ -1,16 +1,17 @@
-// socketTest.cpp: 定义控制台应用程序的入口点。
-//
 
-#include "stdafx.h"
 //#include "windows.h"
-#include "winsock2.h"
-#include <WS2tcpip.h>
 
+#include <WS2tcpip.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <assert.h>
+#include <winsock2.h>
+
 
 #pragma comment(lib, "ws2_32.lib")
 
-#pragma pack(push, 1)
+//#pragma pack(push, 1)
 typedef struct
 {
 	unsigned short    	version;
@@ -18,7 +19,7 @@ typedef struct
 	unsigned short	  	length;         // length of data
 	unsigned char   	data[];
 }net_pkg_t;
-#pragma pack(pop)
+//#pragma pack(pop)
 
 
 int main(int argc, char** argv)
@@ -37,7 +38,7 @@ int main(int argc, char** argv)
 	int sock_fd;
 	sockaddr_in addr;
 
-	for (int i = 0; i < 1; i++)
+	for (int i = 0; i < 1000; i++)
 	{
 		sock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		addr.sin_family = AF_INET;
@@ -58,7 +59,7 @@ int main(int argc, char** argv)
 		net_pkg_t* pack = (net_pkg_t*)sendbuf;
 
 		pack->version = 0;
-		pack->msgID = 199954;
+		pack->msgID = GetTickCount();
 		pack->length = 39;
 		memcpy(pack->data, "it is test message! head how to check?", 39);
 
@@ -73,10 +74,8 @@ int main(int argc, char** argv)
 		assert(resp->msgID == pack->msgID);
 		
 		printf("  server msg: %s\n", resp->data);
-
-
 		//"[resp msg] server have received msg from client, response for it!\n"
-		//closesocket(sock_fd);
+		closesocket(sock_fd);
 	}
 
 
