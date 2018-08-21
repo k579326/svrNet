@@ -1,7 +1,7 @@
 
 #pragma once
 
-#pragma pack(push, 1)
+
 typedef struct 
 {
 	unsigned short    	version;
@@ -9,7 +9,6 @@ typedef struct
     unsigned short	  	length;         // length of data
 	unsigned char   	data[];
 }net_pkg_t;
-#pragma pack(pop)
 
 
 // 从数据流中解析出一个完整包

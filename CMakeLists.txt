@@ -3,7 +3,7 @@
 
 set(CUSTOM_OS_LINUX ON)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c++0x -g")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 
 cmake_minimum_required(VERSION 2.8)
 

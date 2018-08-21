@@ -139,9 +139,16 @@ void* listen_thread(void* param)
 		ep_evt.data.fd = cds->client_fd;
 		err = epoll_ctl(pSrc->ep_fd, EPOLL_CTL_ADD, cds->client_fd, &ep_evt);
         
-		pthread_mutex_lock(&pSrc->clt.cltlock);
-        easy_list_insert_to_tail(pSrc->clt.cltlist, cds);
-		pthread_mutex_unlock(&pSrc->clt.cltlock);
+		if (err != -1)
+        {
+            pthread_mutex_lock(&pSrc->clt.cltlock);
+            easy_list_insert_to_tail(pSrc->clt.cltlist, cds);
+		    pthread_mutex_unlock(&pSrc->clt.cltlock);
+        }
+        else
+        {
+		    printf("[New Connect %d Add To Epoll Failed!]\n", cds->client_fd);
+        }
 
 		usleep(1000 * 10);
 	}
@@ -292,29 +299,31 @@ static int handle_EPOLLOUT_event(struct epoll_event* event, struct es_svrinfo_t*
 {
 	int sockfd = 0;
     int buflen = 0;
-    int remain = 0;
+    int send_len = 0;
+    unsigned char* ptr = NULL;
     client_data_t* clientdata = NULL;
     unsigned char sendbuf[NET_PACK_MAX_SIZE];
-	buflen = NET_PACK_MAX_SIZE;
 
+	buflen = NET_PACK_MAX_SIZE;
 	sockfd = event->data.fd;
-	
 	// 从发送缓冲区中找对应socket的数据包
+
 	if (QSend_pop_first(sockfd, sendbuf, &buflen) == -1)
 	{
 		goto err;
 	}
 
+    ptr = sendbuf;
+
     do
     {
-        remain = send(sockfd, sendbuf, buflen, 0);
-        
-        if (remain == -1)
+        send_len = send(sockfd, ptr, buflen, 0);
+
+        if (send_len == -1)
         {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
                 printf("[EXCEPTION] socket Send buffer is Full!\n");
-
                 // 休息100毫秒再试，网卡处理不过来了
                 usleep(100 * 1000);
                 continue;
@@ -328,12 +337,13 @@ static int handle_EPOLLOUT_event(struct epoll_event* event, struct es_svrinfo_t*
         }
         else
         {
-            buflen = buflen - remain;
+            buflen = buflen - send_len;
+            ptr += send_len;
         }
-    }while (0 <= buflen);
-
+    }while (0 < buflen);
 
 err:
+
 	event->events = EPOLLIN | EPOLLET;
 	epoll_ctl(pSrc->ep_fd, EPOLL_CTL_MOD, sockfd, event);
 

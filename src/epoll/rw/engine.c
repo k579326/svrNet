@@ -57,6 +57,8 @@ static void* sendthread_func(void* param)
 			printf("[EPOLLMODIFY] modify socket %d epoll event failed!\n");
 			assert(0);
 		}
+
+		usleep(1000 * 10);
 	}
 
 	return;

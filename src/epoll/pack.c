@@ -44,12 +44,13 @@ int parse_pack(void* buf, int* buf_len, void** pack)
 
 int create_pack(void* buf, int buf_len, int msgID)
 {
-	net_pkg_t* ptr = NULL;
-	
-	memmove((char*)buf + sizeof(net_pkg_t), buf, buf_len);
+	net_pkg_t* ptr = (net_pkg_t*)buf;
 
-	ptr = (net_pkg_t*)buf;
+	memmove(ptr->data, buf, buf_len);
+
 	
+	//memmove((char*)buf + sizeof(net_pkg_t), buf, buf_len);
+
 	ptr->version = PACK_VERSION;
 	ptr->length = buf_len;
 	ptr->msgID = msgID;
