@@ -242,15 +242,6 @@ static int handle_EPOLLIN_event(struct epoll_event* event, struct es_svrinfo_t* 
 		int pack_len = 0;
 		void* pack = NULL;
 
-		if (cache_size != 0)
-		{
-            memmove(recv_buff + cache_size, recv_buff, err);
-			memcpy(recv_buff, cache_buf, cache_size);
-			err += cache_size;
-			cache_size = 0;	// 重置
-		}
-		
-		
 		// 解析当前recv_buff数据, 每解析出完整的一包，启动一个任务线程
 		pack_len = parse_pack(recv_buff, &err, &pack);
 		while (pack_len != 0)
@@ -265,16 +256,11 @@ static int handle_EPOLLIN_event(struct epoll_event* event, struct es_svrinfo_t* 
 			pack_len = parse_pack(recv_buff, &err, &pack);
 		}
 
-		assert(err >= 0);
+		// 保留剩余数据长度
+		cache_size = err;
+		// 继续接收数据,不要覆盖buf中未处理的数据
+		err = recv(curfd, recv_buff + err, NET_RECV_BUFF_SIZE - err, 0);
 		
-		// recv_buf中剩下的不足一包的数据保留
-		if (err > 0)
-		{
-			memcpy(cache_buf, recv_buff, err);
-			cache_size = err;
-		}
-
-		err = recv(curfd, recv_buff, NET_RECV_BUFF_SIZE, 0);
     }
 
 	if (err <= -1)
@@ -283,7 +269,7 @@ static int handle_EPOLLIN_event(struct epoll_event* event, struct es_svrinfo_t* 
         {
             // cache_buf中的数据加socket扔进缓冲区，等待下次数据来。
             if (cache_size != 0)
-				assert(map_insert(curfd, cache_buf, cache_size) == 0);
+				assert(map_insert(curfd, recv_buff, cache_size) == 0);
         }
         else
         {

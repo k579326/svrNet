@@ -11,7 +11,7 @@
 #include "engine.h"
 #include "ep_svr.h"	// 优化
 #include "net_config.h"
-
+#include "pack.h"
 
 typedef struct
 {
@@ -66,19 +66,22 @@ static void* sendthread_func(void* param)
 static void poolthread_func(void* param)
 {
 	work_param_t* work = (work_param_t*)param;
-	void* outdata = NULL;
+	net_pkg_t* outdata = NULL;
+	net_pkg_t* pack = (net_pkg_t*)work->data;
 	int outlen = 0;
 	int msgID = 0;
 	int ret;
+
+	assert(pack->length + sizeof(net_pkg_t) == work->size);
 	
 	if (work->pool->work_func)
 	{
-		outdata = malloc(NET_PACK_MAX_SIZE);
+		outdata = (net_pkg_t*)malloc(NET_PACK_MAX_SIZE);
 		outlen = NET_PACK_MAX_SIZE;
-		ret = work->pool->work_func(work->data, work->size, outdata, &outlen);
+		ret = work->pool->work_func(pack->data, pack->length, (void*)outdata, &outlen);
 		if (ret == 0)
 		{
-			msgID = pack_msgID(work->data);
+			msgID = pack->msgID;
 			outlen = create_pack(outdata, outlen, msgID);
 			QSend_push(work->socket, outdata, outlen);
 			// 通知发送线程，有活干了
