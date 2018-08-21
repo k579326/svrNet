@@ -58,6 +58,7 @@ int init_env(struct es_svrinfo_t* info)
 	info->ep_fd = epoll_create(1);
 
 	sendthread_init(&info->sender, info->ep_fd);
+	sendthread_start(&info->sender);
 	
     return 0;
 }
@@ -251,7 +252,7 @@ static int handle_EPOLLIN_event(struct epoll_event* event, struct es_svrinfo_t* 
 		
 		
 		// 解析当前recv_buff数据, 每解析出完整的一包，启动一个任务线程
-		pack_len = parse_pack(recv_buff, err, &pack);
+		pack_len = parse_pack(recv_buff, &err, &pack);
 		while (pack_len != 0)
 		{
 			while (workpool_dowork(&pSrc->pool, curfd, pack, pack_len) == -1)
@@ -261,7 +262,7 @@ static int handle_EPOLLIN_event(struct epoll_event* event, struct es_svrinfo_t* 
 	            // 休息100毫秒再试，那边已经处理不过来了
 	            usleep(100 * 1000);  
 			}
-			pack_len = parse_pack(recv_buff, err, &pack);
+			pack_len = parse_pack(recv_buff, &err, &pack);
 		}
 
 		assert(err >= 0);
@@ -308,7 +309,7 @@ static int handle_EPOLLOUT_event(struct epoll_event* event, struct es_svrinfo_t*
     int remain = 0;
     client_data_t* clientdata = NULL;
     unsigned char sendbuf[NET_PACK_MAX_SIZE];
-
+	buflen = NET_PACK_MAX_SIZE;
 
 	sockfd = event->data.fd;
 	

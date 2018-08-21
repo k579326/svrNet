@@ -12,6 +12,7 @@
 #include <pthread.h>
 
 #include "cache.h"
+#include "net_config.h"
 
 
 
@@ -91,7 +92,7 @@ int map_find(int client_socket, void* data, int* len)
 	
 	s_dataMap.unlock();
 
-	return 0;
+	return ret;
 }
 
 
@@ -150,14 +151,22 @@ static SEND_LIST s_send_queue;		// TODO:优化，拒绝全局变量
 int QSend_push(int socket, void* data, int len)
 {
 	_SEND_T x;
+	bool hit = false;
+	
 	s_send_queue.lock();
 
 	x.target_socket = socket;
 	x.data.assign((char*)data, len);
 
-	if (QSend_Socket_of_front() == socket)
+	auto it = s_send_queue.m_list.begin();
+	if (it != s_send_queue.m_list.end() && it->target_socket == socket)
 	{
-		s_send_queue.m_list.begin()->data += x.data;	
+		hit = true;
+	}
+	
+	if (hit && (it->data.size() + len < NET_PACK_MAX_SIZE))
+	{
+		it->data += x.data;	
 	}
 	else
 	{
@@ -185,14 +194,15 @@ int QSend_pop_first(int socket, void* data, int* len)
 	if (*len < it->data.size())
 	{
 		ret = -1;
+		*len = it->data.size();
 	}
 	else
 	{
+		*len = it->data.size();
 		memcpy(data, it->data.c_str(), it->data.size());
+		s_send_queue.m_list.erase(it);
 		ret = 0;
 	}
-	*len = it->data.size();
-	s_send_queue.m_list.erase(it);
 	
 	s_send_queue.unlock();
 	

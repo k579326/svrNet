@@ -10,37 +10,35 @@
 
 
 
-int parse_pack(void* buf, int* buf_len, void** pack)
+int parse_pack(void* buf, int* buf_len, void** data)
 {
-	int pack_len;
+	int data_len;
     net_pkg_t* head;
     
 	if (*buf_len <= sizeof(net_pkg_t))
 	{
-		*pack = NULL;
+		*data = NULL;
 		return 0;
 	}	
 
 	
 	head = (net_pkg_t*)buf;
-	pack_len = head->length;
+	data_len = head->length;
 
-	if (pack_len > *buf_len)
+	if (data_len + sizeof(net_pkg_t) > *buf_len)
 	{
-		*pack = NULL;
-		pack_len = 0;
+		*data = NULL;
+		data_len = 0;
 	}
 	else
 	{
-		*pack = (net_pkg_t*)malloc(sizeof(pack_len) - sizeof(net_pkg_t));
-		memcpy(*pack, buf + sizeof(net_pkg_t), pack_len - sizeof(net_pkg_t));
-		memmove(buf, (char*)buf + pack_len, *buf_len - pack_len);
-		*buf_len -= pack_len;
-
-		pack_len -= sizeof(net_pkg_t);
+		*data = (net_pkg_t*)malloc(data_len);
+		memcpy(*data, (char*)buf + sizeof(net_pkg_t), data_len);
+		memmove(buf, (char*)buf + sizeof(net_pkg_t) + data_len, *buf_len - data_len);
+		*buf_len -= (sizeof(net_pkg_t) + data_len);
 	}
 
-	return pack_len;
+	return data_len;
 }
 
 

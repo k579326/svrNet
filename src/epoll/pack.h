@@ -12,7 +12,7 @@ typedef struct
 
 
 // 从数据流中解析出一个完整包
-int parse_pack(void* buf, int* buf_len, void** pack);
+int parse_pack(void* buf, int* buf_len, void** data);
 void release_pack(void* pack);
 
 
