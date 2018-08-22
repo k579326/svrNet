@@ -15,12 +15,22 @@
 
 
 
-struct clientinfo
+typedef struct
 {
-	easy_list_t*    cltlist; // 客户端列表 TODO: 更换为更快的map
-	pthread_mutex_t cltlock;
-};
+	unsigned char		iptype;			// ipv4: 0, ipv6 1
+	unsigned char		ip[16];
+	int                 client_fd;
+}clt_info_t;
 
+
+typedef struct 
+{
+	clt_info_t	clt;
+	int 		conntype;		// 连接类型，区分不同的网络任务
+}svr_connect_t;
+
+
+typedef void* conn_table_t;
 
 struct es_svrinfo_t
 {
@@ -28,17 +38,12 @@ struct es_svrinfo_t
 	int             ep_fd;
 	pthread_t       listen_tid;
 	pthread_t       work_tid;
-	struct clientinfo clt;
+	connect_table	conntable;
     struct work_pool_t pool;
 	sender_thread sender;
 };
 
 
-typedef struct
-{
-	struct sockaddr_in  net_info;
-	int                 client_fd;
-}client_data_t;
 
 
 int init_env(struct es_svrinfo_t* info);
