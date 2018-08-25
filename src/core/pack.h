@@ -18,7 +18,6 @@ void release_pack(void* pack);
 
 int create_pack(void* buf, int buf_len, int msgID);
 
-int pack_msgID(void* pack);
 
 
 

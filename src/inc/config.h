@@ -1,4 +1,6 @@
 
+
+
 #pragma once
 
 
@@ -16,4 +18,5 @@
 // epoll_wait每次监听的最大事件个数
 #define 	NET_EPOLL_EVENT_MAX_SIZE	100
 
-// 
+
+#define     NET_WORK_TYPE_MAX_SIZE      100

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "net_config.h"
+#include "config.h"
 #include "pack.h"
 
 
@@ -57,14 +57,6 @@ int create_pack(void* buf, int buf_len, int msgID)
 
 	return buf_len + sizeof(net_pkg_t);
 }
-
-
-int pack_msgID(void* pack)
-{
-	return ((net_pkg_t*)pack)->msgID;
-}
-
-
 
 
 void release_pack(void* pack)
