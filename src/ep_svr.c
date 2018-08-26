@@ -171,7 +171,10 @@ static int handle_EPOLLIN_event(struct epoll_event* event, net_svr_t* svr)
         int succ;
 		int pack_len = 0;
 		void* pack = NULL;
-
+		
+		// 很重要
+		err += cache_size;
+		
 		// 解析当前recv_buff数据, 每解析出完整的一包，启动一个任务线程
 		pack_len = parse_pack(recv_buff, &err, &pack);
 		while (pack_len != 0)
@@ -207,7 +210,8 @@ static int handle_EPOLLIN_event(struct epoll_event* event, net_svr_t* svr)
         }
 	}
 	else if (err == 0)
-	{
+	{// 断开连接了
+		conn_remove(svr->conntable, connid);
 		MRecv_remove(svr->rhpr, curfd);
 		close(curfd);
 	}

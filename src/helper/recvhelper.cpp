@@ -18,14 +18,13 @@
 using namespace std;
 
 
-typedef int CLTSOCKET;
 typedef string DATA;
 
 
 typedef struct recv_helper_t
 {
 	pthread_mutex_t 		m_lock;
-	map<CLTSOCKET, DATA> 	m_datamap;
+	map<CONNID, DATA> 		m_datamap;
 
 	recv_helper_t() { pthread_mutex_init(&m_lock, NULL); }
 	~recv_helper_t(){ pthread_mutex_destroy(&m_lock); }
@@ -50,11 +49,11 @@ void release_recv_helper(recv_helper_t* helper)
 	return;
 }
 
-int MRecv_insert(recv_helper_t* helper, int client_socket, const void* data, int len)
+int MRecv_insert(recv_helper_t* helper, CONNID id, const void* data, int len)
 {
 	helper->lock();
 
-	if (helper->m_datamap.end() != helper->m_datamap.find(client_socket))
+	if (helper->m_datamap.end() != helper->m_datamap.find(id))
 	{
 		assert(0);
 		helper->unlock();
@@ -62,7 +61,7 @@ int MRecv_insert(recv_helper_t* helper, int client_socket, const void* data, int
 	}
 		
 
-	helper->m_datamap[client_socket] = string().assign((char*)data, len);
+	helper->m_datamap[id] = string().assign((char*)data, len);
 
 	helper->unlock();
 
@@ -70,12 +69,12 @@ int MRecv_insert(recv_helper_t* helper, int client_socket, const void* data, int
 }
 
 
-int MRecv_find(recv_helper_t* helper, int client_socket, void* data, int* len)
+int MRecv_find(recv_helper_t* helper, CONNID id, void* data, int* len)
 {
 	int ret = 0;
 	helper->lock();
 
-	auto it = helper->m_datamap.find(client_socket);
+	auto it = helper->m_datamap.find(id);
 	if (it == helper->m_datamap.end())
 	{
 		ret = -1;
@@ -102,13 +101,13 @@ int MRecv_find(recv_helper_t* helper, int client_socket, void* data, int* len)
 }
 
 
-int MRecv_remove(recv_helper_t* helper, int client_socket)
+int MRecv_remove(recv_helper_t* helper, CONNID id)
 {
 	int ret = 0;
 	
 	helper->lock();
 
-	auto it = helper->m_datamap.find(client_socket);
+	auto it = helper->m_datamap.find(id);
 	if (it == helper->m_datamap.end())
 	{
 		// do nothing

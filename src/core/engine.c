@@ -55,7 +55,7 @@ static void work_proc(void* param)
 }
 
 
-static void thread_completed(void* param)
+static void thread_completed(void* param, int status)
 {
 	_work_t* work = (_work_t*)param;
 
@@ -103,7 +103,7 @@ int workpool_push_work(work_pool_t* wp, CONNID connid, void* data, int len)
 	buf->data = data;
 	buf->connid = connid;
 	
-	return threadpool_push_work(wp->thread_pool, buf, work_proc, NULL);
+	return threadpool_push_work(wp->thread_pool, buf, work_proc, thread_completed);
 }
 
 

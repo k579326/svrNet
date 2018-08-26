@@ -15,7 +15,7 @@ int parse_pack(void* buf, int* buf_len, void** pack)
 	int pack_len;
     net_pkg_t* head;
     
-	if (*buf_len <= sizeof(net_pkg_t))
+	if (*buf_len < sizeof(net_pkg_t))
 	{
 		*pack = NULL;
 		return 0;
