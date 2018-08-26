@@ -207,7 +207,7 @@ int senddata(int argc, char** argv)
     }
 
     char sendbuf[1024 * 64];
-    int bufsize = 2 << 29;
+    int bufsize = 2 << 30 - 1;
     int blocksize = 1024 * 64;
 
 

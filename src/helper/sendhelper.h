@@ -36,7 +36,7 @@ send_helper_t* create_send_helper(const net_svr_t* svr);
 int QSend_push(send_queue_t* queue, CONNID connectId, void* data, int len);
 CONNID QSend_connid_of_front(send_queue_t* queue);
 int QSend_pop_first(send_queue_t* queue, CONNID connectId, void* data, int* len);
-int QSend_remove(send_queue_t* queue, CONNID connid);
+int QSend_remove_all_by_connid(send_queue_t* queue, CONNID connid);
 int QSend_size(send_queue_t* queue);
 
 void send_wait(send_thread_t* thread);

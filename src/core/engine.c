@@ -35,8 +35,8 @@ static void work_proc(void* param)
 	
 	if (work->pool->processmsg)
 	{
-		outdata = (net_pkg_t*)malloc(NET_PACK_MAX_SIZE);
-		outlen = NET_PACK_MAX_SIZE;
+		outdata = (net_pkg_t*)malloc(NET_PACK_SIZE_LIMIT);
+		outlen = NET_PACK_SIZE_LIMIT;
 		ret = work->pool->processmsg(pack->data, pack->length, (void*)outdata, &outlen);
 		if (ret == 0)
 		{
@@ -96,6 +96,7 @@ int workpool_start(work_pool_t* wp, TASKHANDLER procfunc, int poolsize)
 
 int workpool_push_work(work_pool_t* wp, CONNID connid, void* data, int len)
 {
+	int ret = 0;
 	_work_t* buf = (_work_t*)malloc(sizeof(_work_t));
 
 	buf->pool = wp;
@@ -103,7 +104,13 @@ int workpool_push_work(work_pool_t* wp, CONNID connid, void* data, int len)
 	buf->data = data;
 	buf->connid = connid;
 	
-	return threadpool_push_work(wp->thread_pool, buf, work_proc, thread_completed);
+	ret = threadpool_push_work(wp->thread_pool, buf, work_proc, thread_completed);
+	if (ret == -1)
+	{
+		// 不能释放pack
+		free(buf);
+	}
+	return ret;
 }
 
 

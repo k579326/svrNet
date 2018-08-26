@@ -92,7 +92,7 @@ static void* send_func(void* param)
 		if (epoll_ctl(thread->svr->ep_fd, EPOLL_CTL_MOD, socket, &ep_evt) != 0)
 		{
 			printf("[EPOLLMODIFY] modify connid %d epoll event failed!\n");
-			QSend_remove(thread->cache, connid);	// 可能已经被清理了，多检查一次
+			QSend_remove_all_by_connid(thread->cache, connid);	// 可能已经被清理了，多检查一次
 			conn_remove(thread->svr->conntable, connid);		// 可能已经被清理了，多检查一次
 			// 接收缓冲区清理在epollIN事件中处理
 		}
@@ -142,7 +142,7 @@ int QSend_push(send_queue_t* queue, CONNID connectId, void* data, int len)
 		hit = true;
 	}
 	
-	if (hit && (it->data.size() + len < NET_PACK_MAX_SIZE))
+	if (hit && (it->data.size() + len < NET_SEND_BUFF_SIZE))			// 多个小包可以打包发送
 	{
 		it->data += x.data;	
 	}
@@ -202,15 +202,22 @@ CONNID QSend_connid_of_front(send_queue_t* queue)
 	return conn_id;
 }
 
-int QSend_remove(send_queue_t* queue, CONNID connid)
+int QSend_remove_all_by_connid(send_queue_t* queue, CONNID connid)
 {
 	queue->lock();
 
-	auto it = find_if(queue->m_list.begin(), queue->m_list.end(), [&](const _SEND_T& element)->bool{ return connid == element.conn_id;});
-	if (it != queue->m_list.end())
+	for (auto it = queue->m_list.begin(); it != queue->m_list.end(); )
 	{
-		queue->m_list.erase(it);
-	}
+		if (it->conn_id == connid)
+		{
+			it = queue->m_list.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}	
+	
 	queue->unlock();
 
 	return 0;

@@ -124,10 +124,10 @@ static int handle_EPOLLIN_event(struct epoll_event* event, net_svr_t* svr)
 	int result = 0;
 	CONNID connid;
 	
-    unsigned char recv_buff[NET_RECV_BUFF_SIZE];		// 需要移动数据，要两倍大
-	unsigned char cache_buf[NET_PACK_MAX_SIZE];
-	int cache_size = NET_PACK_MAX_SIZE;
-
+    unsigned char recv_buff[NET_RECV_BUFF_SIZE];		// 128K
+	unsigned char cache_buf[NET_REMAIN_CACHE_SIZE];			// 512K
+	int cache_size = NET_REMAIN_CACHE_SIZE;
+	
 	connid = event->data.u64;
 	
 	curfd = conn_get_sockfd(svr->conntable, connid);
@@ -136,12 +136,12 @@ static int handle_EPOLLIN_event(struct epoll_event* event, net_svr_t* svr)
 		return 0;
 	}
 	
-    err = recv(curfd, recv_buff, NET_RECV_BUFF_SIZE, 0);
+    err = recv(curfd, recv_buff, NET_RECV_SIZE_LIMIT, 0);
 
 	if (err > 0)
 	{
 		// 搜索不完整数据缓冲区中是否存在该连接的数据。
-		result = MRecv_find(svr->rhpr, curfd, cache_buf, &cache_size);
+		result = MRecv_find(svr->rhpr, connid, cache_buf, &cache_size);
 		if (result == 0)
 		{
 			// 如果有，取出来放到recv_buff的前面。
@@ -160,10 +160,9 @@ static int handle_EPOLLIN_event(struct epoll_event* event, net_svr_t* svr)
 		}
 
 		// 从map中移除
-		MRecv_remove(svr->rhpr, curfd);
+		MRecv_remove(svr->rhpr, connid);
 	}
 
-	
 	cache_size = 0;	// 这个缓冲区重复利用
 	
     while (err > 0)
@@ -192,8 +191,7 @@ static int handle_EPOLLIN_event(struct epoll_event* event, net_svr_t* svr)
 		// 保留剩余数据长度
 		cache_size = err;
 		// 继续接收数据,不要覆盖buf中未处理的数据
-		err = recv(curfd, recv_buff + err, NET_RECV_BUFF_SIZE - err, 0);
-		
+		err = recv(curfd, recv_buff + err, NET_RECV_SIZE_LIMIT - err, 0);
     }
 
 	if (err <= -1)
@@ -202,7 +200,7 @@ static int handle_EPOLLIN_event(struct epoll_event* event, net_svr_t* svr)
         {
             // cache_buf中的数据加socket扔进缓冲区，等待下次数据来。
             if (cache_size != 0)
-				assert(MRecv_insert(svr->rhpr, curfd, recv_buff, cache_size) == 0);
+				assert(MRecv_insert(svr->rhpr, connid, recv_buff, cache_size) == 0);
         }
         else
         {
@@ -211,9 +209,10 @@ static int handle_EPOLLIN_event(struct epoll_event* event, net_svr_t* svr)
 	}
 	else if (err == 0)
 	{// 断开连接了
-		conn_remove(svr->conntable, connid);
-		MRecv_remove(svr->rhpr, curfd);
-		close(curfd);
+		QSend_remove_all_by_connid(svr->shpr->m_queue, connid);	// 清理发送缓冲区中该连接未发送的数据
+		conn_remove(svr->conntable, connid);					// 从连接表中删除连接
+		MRecv_remove(svr->rhpr, connid);						// 从接收缓冲区中删除未处理的请求数据
+		close(curfd);											// 关闭连接
 	}
 
     return 0;
@@ -227,9 +226,9 @@ static int handle_EPOLLOUT_event(struct epoll_event* event, net_svr_t* svr)
     int buflen = 0;
     int send_len = 0;
     unsigned char* ptr = NULL;
-    unsigned char sendbuf[NET_PACK_MAX_SIZE];
+    unsigned char sendbuf[NET_SEND_BUFF_SIZE];
 
-	buflen = NET_PACK_MAX_SIZE;
+	buflen = NET_SEND_BUFF_SIZE;
 	
 	connid = event->data.u64;
 	sockfd =  conn_get_sockfd(svr->conntable, connid);
