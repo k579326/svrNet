@@ -1,4 +1,4 @@
-
+Ôªø
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,7 +48,7 @@ static void thread_func(void* param)
     {
         if (uv_sem_trywait(&tp->exit_sem) == 0)
         {
-            uv_sem_post(&tp->exit_sem);	// ¡¨À¯º§∑¢
+            uv_sem_post(&tp->exit_sem);	// ‚î¥–≥‚ï¶–≠‚ïù—Ü–∏–±
             break;
         }
 

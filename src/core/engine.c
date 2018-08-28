@@ -1,4 +1,4 @@
-
+﻿
 #include <sys/sysinfo.h>
 #include <pthread.h>
 #include <stdio.h>

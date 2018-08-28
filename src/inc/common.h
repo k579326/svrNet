@@ -1,4 +1,4 @@
-
+ï»¿
 
 #pragma once
 
@@ -13,28 +13,28 @@ typedef struct conn_table_t conn_table_t;
 
 typedef struct net_svr_t
 {
-	// ·şÎñÆ÷¼àÌısocket
+	// æœåŠ¡å™¨ç›‘å¬socket
 	int             svr_sock;
 	
-	// ´¦ÀíIOµÄepollµÄfd
+	// å¤„ç†IOçš„epollçš„fd
 	int             ep_fd;
 	
-	// ¼àÌı¿Í»§¶ËÁ¬½ÓµÄÏß³ÌID
+	// ç›‘å¬å®¢æˆ·ç«¯è¿æ¥çš„çº¿ç¨‹ID
 	pthread_t       lis_tid;
 	
-	// epoll´¦ÀíIOÊÂ¼şµÄÏß³ÌID
+	// epollå¤„ç†IOäº‹ä»¶çš„çº¿ç¨‹ID
 	pthread_t       loop_tid;
 	
-	// Á¬½Ó±í£¬´æ´¢µ±Ç°Á¬½ÓµÄ¿Í»§¶Ë
+	// è¿æ¥è¡¨ï¼Œå­˜å‚¨å½“å‰è¿æ¥çš„å®¢æˆ·ç«¯
 	conn_table_t*	conntable;
 
-	// Ïß³Ì³Ø£¬¸ºÔğ´¦Àí¿Í»§¶ËÇëÇó
+	// çº¿ç¨‹æ± ï¼Œè´Ÿè´£å¤„ç†å®¢æˆ·ç«¯è¯·æ±‚
     work_pool_t 	pool;
 	
-	// Êı¾İ·¢ËÍ¸¨Öú
+	// æ•°æ®å‘é€è¾…åŠ©
 	send_helper_t* 	shpr;
 	
-	// Êı¾İ½ÓÊÕ¸¨Öú
+	// æ•°æ®æ¥æ”¶è¾…åŠ©
 	recv_helper_t*	rhpr;
 }net_svr_t;
 

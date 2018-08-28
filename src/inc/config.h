@@ -7,17 +7,17 @@
 #define     PACK_VERSION			0
 
 
-#define		NET_PACK_SPACE_SIZE_LIMIT 	64 	* 1024			// ¿Í»§¶ËÓë·þÎñÆ÷½»»¥Ã¿´ÎµÄÓÃ»§Êý¾Ý×î´ó³¤¶È
+#define		NET_PACK_SPACE_SIZE_LIMIT 	64 	* 1024			// å®¢æˆ·ç«¯ä¸ŽæœåŠ¡å™¨äº¤äº’æ¯æ¬¡çš„ç”¨æˆ·æ•°æ®æœ€å¤§é•¿åº¦
 
-#define 	NET_RECV_BUFF_SIZE			(256 * 1024)		// Êý¾Ý½ÓÊÕ»º³åÇø¿Õ¼ä³¤¶È
+#define 	NET_RECV_BUFF_SIZE			(256 * 1024)		// æ•°æ®æŽ¥æ”¶ç¼“å†²åŒºç©ºé—´é•¿åº¦
 
-#define 	NET_PACK_SIZE_LIMIT		(NET_PACK_SPACE_SIZE_LIMIT + 1024)	// Ð­Òé°ü+ÓÃ»§Êý¾Ý×Ü³¤¶ÈÉÏÏÞ
-#define 	NET_REMAIN_CACHE_SIZE	NET_PACK_SIZE_LIMIT			    // ²»ÍêÕû°ü»º´æ³¤¶È
-#define 	NET_RECV_SIZE_LIMIT		(NET_RECV_BUFF_SIZE - NET_REMAIN_CACHE_SIZE)	// Ã¿´Î½ÓÊÕµÄÊý¾Ý³¤¶ÈÉÏÏÞ
+#define 	NET_PACK_SIZE_LIMIT		(NET_PACK_SPACE_SIZE_LIMIT + 1024)	// åè®®åŒ…+ç”¨æˆ·æ•°æ®æ€»é•¿åº¦ä¸Šé™
+#define 	NET_REMAIN_CACHE_SIZE	NET_PACK_SIZE_LIMIT			    // ä¸å®Œæ•´åŒ…ç¼“å­˜é•¿åº¦
+#define 	NET_RECV_SIZE_LIMIT		(NET_RECV_BUFF_SIZE - NET_REMAIN_CACHE_SIZE)	// æ¯æ¬¡æŽ¥æ”¶çš„æ•°æ®é•¿åº¦ä¸Šé™
 
-#define 	NET_SEND_BUFF_SIZE			(256 * 1024)		// ·¢ËÍ»º³åÇø¿Õ¼ä³¤¶È
+#define 	NET_SEND_BUFF_SIZE			(256 * 1024)		// å‘é€ç¼“å†²åŒºç©ºé—´é•¿åº¦
 
-// epoll_waitÃ¿´Î¼àÌýµÄ×î´óÊÂ¼þ¸öÊý
+// epoll_waitæ¯æ¬¡ç›‘å¬çš„æœ€å¤§äº‹ä»¶ä¸ªæ•°
 #define 	NET_EPOLL_EVENT_MAX_SIZE	100
 
 #define     NET_WORK_TYPE_MAX_SIZE      100

@@ -1,4 +1,4 @@
-
+ï»¿
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +22,7 @@ using namespace std;
 
 typedef string DATA;
 
-// ·¢ËÍ»º³åÇø
+// å‘é€ç¼“å†²åŒº
 typedef struct
 {
 	CONNID 	    conn_id;
@@ -57,7 +57,7 @@ typedef struct send_queue_t
 
 
 
-//// ·¢ËÍÊý¾Ý¸¨ÖúÏß³Ì
+//// å‘é€æ•°æ®è¾…åŠ©çº¿ç¨‹
 static void* send_func(void* param)
 {
 	send_thread_t* thread = (send_thread_t*)param;
@@ -67,7 +67,7 @@ static void* send_func(void* param)
 		struct epoll_event ep_evt;
 		CONNID connid = 0;
 		int socket;
-		// ²éÕÒ»º³åÇøÖÐµÄµÚÒ»¸öÊý¾Ý
+		// æŸ¥æ‰¾ç¼“å†²åŒºä¸­çš„ç¬¬ä¸€ä¸ªæ•°æ®
 		connid = QSend_connid_of_front(thread->cache);
 		if (connid == SVR_INVALID_CONNECT_ID)
 		{
@@ -77,11 +77,11 @@ static void* send_func(void* param)
 
         socket = conn_get_sockfd(thread->svr->conntable, connid);
         if (socket == -1)
-        {// Á¬½ÓÒÑ¾­²»´æÔÚ
+        {// è¿žæŽ¥å·²ç»ä¸å­˜åœ¨
             continue;
         }
         
-		// TODO:Ïß³ÌÍË³öÐÅºÅ
+		// TODO:çº¿ç¨‹é€€å‡ºä¿¡å·
 		if (0)
 		{
 			break;
@@ -92,9 +92,9 @@ static void* send_func(void* param)
 		if (epoll_ctl(thread->svr->ep_fd, EPOLL_CTL_MOD, socket, &ep_evt) != 0)
 		{
 			printf("[EPOLLMODIFY] modify connid %d epoll event failed!\n");
-			QSend_remove_all_by_connid(thread->cache, connid);	// ¿ÉÄÜÒÑ¾­±»ÇåÀíÁË£¬¶à¼ì²éÒ»´Î
-			conn_remove(thread->svr->conntable, connid);		// ¿ÉÄÜÒÑ¾­±»ÇåÀíÁË£¬¶à¼ì²éÒ»´Î
-			// ½ÓÊÕ»º³åÇøÇåÀíÔÚepollINÊÂ¼þÖÐ´¦Àí
+			QSend_remove_all_by_connid(thread->cache, connid);	// å¯èƒ½å·²ç»è¢«æ¸…ç†äº†ï¼Œå¤šæ£€æŸ¥ä¸€æ¬¡
+			conn_remove(thread->svr->conntable, connid);		// å¯èƒ½å·²ç»è¢«æ¸…ç†äº†ï¼Œå¤šæ£€æŸ¥ä¸€æ¬¡
+			// æŽ¥æ”¶ç¼“å†²åŒºæ¸…ç†åœ¨epollINäº‹ä»¶ä¸­å¤„ç†
 		}
 
 		usleep(1000 * 10);
@@ -142,7 +142,7 @@ int QSend_push(send_queue_t* queue, CONNID connectId, void* data, int len)
 		hit = true;
 	}
 	
-	if (hit && (it->data.size() + len < NET_SEND_BUFF_SIZE))			// ¶à¸öÐ¡°ü¿ÉÒÔ´ò°ü·¢ËÍ
+	if (hit && (it->data.size() + len < NET_SEND_BUFF_SIZE))			// å¤šä¸ªå°åŒ…å¯ä»¥æ‰“åŒ…å‘é€
 	{
 		it->data += x.data;	
 	}
