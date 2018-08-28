@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <assert.h>
 
 #include "uv.h"
 #include "threadpool.h"
@@ -36,11 +36,22 @@ typedef struct _threadpool_t
 
 //#define get_container_addr(element_ptr, type, element) (type*)(element_ptr - (&((type*)0)->element))
 
+static void queue_free_func(void* data, unsigned int len)
+{
+	thread_param_t* param = (thread_param_t*)data;
+
+	assert(len == sizeof(thread_param_t));
+
+	param->after_proc(param->data, 1);
+	return;
+}
+
 
 static void thread_func(void* param)
 {
     int ret = 0;
-    thread_param_t* p = NULL;
+    thread_param_t element;
+	int element_len;
     threadpool_t* tp = (threadpool_t*)param;
 
 
@@ -53,7 +64,9 @@ static void thread_func(void* param)
         }
 
         uv_mutex_lock(&tp->mutex);
-        if (-1 == easy_queue_remove(tp->queue, (void**)&p))
+		
+		element_len = sizeof(thread_param_t);
+        if (-1 == easy_queue_pop(tp->queue, &element, &element_len))
         {
             // empty();
             uv_cond_wait(&tp->cond, &tp->mutex);
@@ -62,16 +75,14 @@ static void thread_func(void* param)
         }
         uv_mutex_unlock(&tp->mutex);
 
-        if (p->proc)
+        if (element.proc)
         {
-            p->proc(p->data);
+            element.proc(element.data);
         }
-        if (p->after_proc)
+        if (element.after_proc)
         {
-            p->after_proc(p->data, 1);
+            element.after_proc(element.data, 1);
         }
-
-        free(p);
     }
 
 
@@ -89,7 +100,8 @@ int threadpool_init(threadpool_t** tp, int threadnum)
     uv_sem_init(&(*tp)->exit_sem, 0);
     uv_mutex_init(&(*tp)->mutex);
     uv_cond_init(&(*tp)->cond);
-    easy_queue_init(&(*tp)->queue);
+
+    easy_queue_init(&(*tp)->queue, queue_free_func);
 
     (*tp)->thread_num = threadnum;
 
@@ -105,7 +117,7 @@ int threadpool_init(threadpool_t** tp, int threadnum)
 int threadpool_push_work(threadpool_t* tp, void* thread_param, work_cb work, after_work_cb after)
 {
     int i = 0;
-    thread_param_t* param = NULL;
+    thread_param_t param;
 
     uv_mutex_lock(&tp->mutex);
     if (easy_queue_size(tp->queue) > 64)
@@ -113,11 +125,12 @@ int threadpool_push_work(threadpool_t* tp, void* thread_param, work_cb work, aft
         uv_mutex_unlock(&tp->mutex);
         return -1;
     }
-    param = (thread_param_t*)malloc(sizeof(thread_param_t));
-    param->proc = work;
-    param->after_proc = after;
-    param->data = thread_param;
-    easy_queue_insert(tp->queue, param);
+	
+    memset(&param, 0, sizeof(thread_param_t));
+    param.proc = work;
+    param.after_proc = after;
+    param.data = thread_param;
+    easy_queue_push(tp->queue, &param, sizeof(thread_param_t));
     uv_cond_broadcast(&tp->cond);
 
     uv_mutex_unlock(&tp->mutex);
@@ -126,26 +139,23 @@ int threadpool_push_work(threadpool_t* tp, void* thread_param, work_cb work, aft
 }
 
 
-static int _threadpool_cancel_all(threadpool_t* tp, cancel_works_cb cancel_cb)
+static int _threadpool_cancel_all(threadpool_t* tp)
 {
     int i = 0;
-    thread_param_t* param = NULL;
+    thread_param_t outbuf;
+	int outlen = sizeof(thread_param_t);
+	
     uv_sem_post(&tp->exit_sem);
 
     uv_mutex_lock(&tp->mutex);
     uv_cond_broadcast(&tp->cond);
 
-    while (easy_queue_remove(tp->queue, (void**)&param) != -1)
-    {
-        if (cancel_cb)
-        {
-            cancel_cb(param->data);
-        }
-        free(param);
-        param = NULL;
-    }
+	// 清理任务队列
+	easy_queue_clear(tp->queue);
+	easy_queue_uninit(tp->queue);
+	tp->queue = NULL;
+	
     uv_mutex_unlock(&tp->mutex);
-
 
     for (; i < tp->thread_num; i++)
     {
@@ -156,11 +166,10 @@ static int _threadpool_cancel_all(threadpool_t* tp, cancel_works_cb cancel_cb)
 }
 
 
-int threadpool_uninit(threadpool_t* tp, cancel_works_cb cancel_cb)
+int threadpool_uninit(threadpool_t* tp)
 {
-    _threadpool_cancel_all(tp, cancel_cb);
+    _threadpool_cancel_all(tp);
 
-    easy_queue_uninit(tp->queue, cancel_cb);
     uv_sem_destroy(&tp->exit_sem);
     uv_mutex_destroy(&tp->mutex);
     uv_cond_destroy(&tp->cond);

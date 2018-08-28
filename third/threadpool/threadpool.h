@@ -17,7 +17,6 @@ extern "C" {
 
     typedef void(*work_cb)(void* param);
     typedef void(*after_work_cb)(void* param, int status);
-    typedef void(*cancel_works_cb)(void* param);
 
     typedef struct _threadpool_t threadpool_t;
 
@@ -25,7 +24,7 @@ extern "C" {
 
     int threadpool_push_work(threadpool_t* tp, void* thread_param, work_cb work, after_work_cb after);
 
-    int threadpool_uninit(threadpool_t* tp, cancel_works_cb cancel_cb);
+    int threadpool_uninit(threadpool_t* tp);
 
 #ifdef __cplusplus
 }

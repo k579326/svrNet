@@ -1,4 +1,4 @@
-﻿
+
 #include <sys/sysinfo.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -67,18 +67,6 @@ static void thread_completed(void* param, int status)
 	return;
 }
 
-static void work_cancel(void* param)
-{
-	_work_t* work = (_work_t*)param;
-
-	// TODO:work->pool->cancel_func(,);
-
-	release_pack(work->data);
-	free(param);
-	
-	return;
-}
-
 
 int workpool_start(work_pool_t* wp, TASKHANDLER procfunc, int poolsize)
 {
@@ -116,7 +104,7 @@ int workpool_push_work(work_pool_t* wp, CONNID connid, void* data, int len)
 
 int workpool_stop(work_pool_t* wp)
 {
-	threadpool_uninit(wp->thread_pool, work_cancel);
+	threadpool_uninit(wp->thread_pool);
 	return 0;
 }
 
