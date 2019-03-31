@@ -126,6 +126,7 @@ int easy_list_insert_to_tail(easy_list_t* list, void* data)
 	item_new->next = NULL;
     
     list->tail->next = item_new;
+    list->tail = item_new;
     list->size++;
 
     return 0;
