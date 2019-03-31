@@ -29,9 +29,9 @@ easy_item_t* easy_list_tail(easy_list_t* list);
 /*
 *	pos is bool value. if set to zero, new element will be add to the position where behind of target item
 */
-int easy_list_add(easy_item_t* item, int pos, void* data);
+int easy_list_add(easy_list_t* list, easy_item_t* item, int pos, void* data);
 
-int easy_list_remove(const easy_list_t* list, easy_item_t* item);
+int easy_list_remove(easy_list_t* list, easy_item_t* item);
 
 int easy_list_setData(easy_item_t* item, void* newdata, void** olddata);
 int easy_list_getData(easy_item_t* item, void** data);

@@ -59,8 +59,8 @@ int easy_list_uninit(easy_list_t** list)
 	
 	while ((*list)->head->next != NULL)
 	{
-		item = (*list)->tail->prev;
-		(*list)->tail = item;
+		item = (*list)->tail;
+		(*list)->tail = (*list)->tail->prev;
 		(*list)->tail->next = NULL;
 		
 		if ((*list)->freememory)
@@ -112,6 +112,8 @@ int easy_list_insert_to_head(easy_list_t* list, void* data)
     }
     
     list->head->next = item_new;
+    list->size++;
+
     return 0;
 }
 
@@ -124,6 +126,8 @@ int easy_list_insert_to_tail(easy_list_t* list, void* data)
 	item_new->next = NULL;
     
     list->tail->next = item_new;
+    list->size++;
+
     return 0;
 }
 
@@ -161,12 +165,19 @@ static int _add_to_behind(easy_item_t* item, void* data)
 }
 
 
-int easy_list_add(easy_item_t* item, int pos, void* data)
+int easy_list_add(easy_list_t* list, easy_item_t* item, int pos, void* data)
 {
-	return pos == 0 ? _add_to_behind(item, data) : _add_to_front(item, data);
+	int ret = (pos == 0 ? _add_to_behind(item, data) : _add_to_front(item, data));
+
+    if (ret == 0)
+    {
+        list->size++;
+    }
+
+    return ret;
 }
 
-int easy_list_remove(const easy_list_t* list, easy_item_t* item)
+int easy_list_remove(easy_list_t* list, easy_item_t* item)
 {
 	item->prev->next = item->next;
 	
@@ -181,6 +192,8 @@ int easy_list_remove(const easy_list_t* list, easy_item_t* item)
     }
 	
 	free(item);
+    list->size--;
+
     return 0;
 }
 
