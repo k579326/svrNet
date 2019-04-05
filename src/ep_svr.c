@@ -106,6 +106,7 @@ static void* listen_thread(void* param)
 		if (err == -1)
         {
             conn_remove(svr->conntable, connId);
+	    // close(conn.clt.client_fd);  ??需要关闭吧？
 		    printf("[New Connect %d Add To Epoll Failed!]\n", conn.clt.client_fd);
         }
        
